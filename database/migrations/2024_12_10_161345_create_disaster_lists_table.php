@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('disaster_lists', function (Blueprint $table) {
-            $table->string('id')->primary(); // Custom ID sebagai primary key
+            $table->string('kode')->primary(); // Custom ID sebagai primary key
             $table->date('tanggal_kejadian');
             // Relasi ke tabel jenis bencana
             $table->string('kode_jenis_bencana');
@@ -41,7 +41,8 @@ return new class extends Migration
             $table->decimal('nilai_kerusakan', 15, 2)->nullable();
             $table->text('upaya')->nullable();
             $table->string('foto')->nullable();
-            $table->geometry('lokasi')->nullable(); // Kolom untuk lokasi berbasis geometry
+            $table->string('latitude')->nullable(); // Kolom untuk lokasi berbasis latitude
+            $table->string('longitude')->nullable(); // Kolom untuk lokasi berbasis longitude
             $table->timestamps();
         });
     }

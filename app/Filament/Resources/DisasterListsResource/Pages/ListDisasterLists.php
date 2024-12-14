@@ -10,6 +10,7 @@ class ListDisasterLists extends ListRecords
 {
     protected static string $resource = DisasterListsResource::class;
 
+    protected static ?string $title = 'Data Bencana';
     protected function getHeaderActions(): array
     {
         return [

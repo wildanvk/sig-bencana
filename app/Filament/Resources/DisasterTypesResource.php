@@ -23,10 +23,12 @@ use Filament\Forms\Components\Card;
 class DisasterTypesResource extends Resource
 {
     protected static ?string $model = DisasterTypes::class;
-
+    protected static ?string $title = 'Custom Page Title';
     protected static ?string $navigationIcon = 'heroicon-o-fire';
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?string $navigationLabel = 'Jenis Bencana';
+    protected static ?string $slug = 'jenis-bencana';
+    protected static ?string $breadcrumb = 'Jenis Bencana';
 
     public static function form(Form $form): Form
     {
@@ -64,7 +66,9 @@ class DisasterTypesResource extends Resource
             ->defaultSort('kode') // Default sorting berdasarkan kode
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('Hapus Jenis Bencana')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus jenis bencana ini?'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

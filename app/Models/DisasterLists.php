@@ -2,7 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Subdistricts;
+use App\Models\DisasterTypes;
+use Illuminate\Support\Facades\DB;
+
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class DisasterLists extends Model
@@ -22,7 +27,6 @@ class DisasterLists extends Model
         'desa',
         'penyebab',
         'dampak',
-        'lokasi',
         'kk',
         'jiwa',
         'sakit',
@@ -31,7 +35,52 @@ class DisasterLists extends Model
         'nilai_kerusakan',
         'upaya',
         'foto',
+        'location',
     ];
+
+    protected $appends = [
+        'location',
+    ];
+
+    public function getLocationAttribute(): array
+    {
+        return [
+            "lat" => (float)$this->latitude,
+            "lng" => (float)$this->longitude,
+        ];
+    }
+
+    public function setLocationAttribute(?array $location): void
+    {
+        if (is_array($location)) {
+            $this->attributes['latitude'] = $location['lat'];
+            $this->attributes['longitude'] = $location['lng'];
+            unset($this->attributes['location']);
+        }
+    }
+
+    public static function getLatLngAttributes(): array
+    {
+        return [
+            'lat' => 'latitude',
+            'lng' => 'longitude',
+        ];
+    }
+
+    public static function getComputedLocation(): string
+    {
+        return 'location';
+    }
+
+    public function disasterTypes()
+    {
+        return $this->belongsTo(DisasterTypes::class, 'kode_jenis_bencana', 'kode');
+    }
+
+    public function subdistricts()
+    {
+        return $this->belongsTo(Subdistricts::class, 'kode_kecamatan', 'kode');
+    }
 
     protected static function boot()
     {
@@ -43,15 +92,37 @@ class DisasterLists extends Model
             $nextNumber = $lastKode ? (int) substr($lastKode, 4) + 1 : 1;
             $model->kode = 'BNC-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
         });
+
+        // static::saving(function ($model) {
+
+
+        //     if (isset($model->latitude, $model->longitude)) {
+        //         $model->koordinat = DB::raw("ST_GeomFromText('POINT({$model->longitude} {$model->latitude})')");
+        //     }
+        // });
     }
 
-    public function disasterTypes()
+    protected static function booted()
     {
-        return $this->belongsTo(DisasterTypes::class, 'kode_jenis_bencana', 'kode');
-    }
+        // Event saat data dihapus
+        static::deleting(function ($model) {
+            optional($model->foto, function ($fotoPath) {
+                Storage::disk('public')->delete($fotoPath);
+            });
+        });
 
-    public function subdistricts()
-    {
-        return $this->belongsTo(Subdistricts::class, 'kode_kecamatan', 'kode');
+        // Event saat data diperbarui (update)
+        static::updating(function ($model) {
+            // Periksa apakah kolom 'foto' diubah
+            if ($model->isDirty('foto')) {
+                // Ambil nilai lama dari kolom 'foto'
+                $oldFoto = $model->getOriginal('foto');
+
+                // Hapus file lama jika tidak null dan merupakan string valid
+                if (!is_null($oldFoto) && !empty($oldFoto) && is_string($oldFoto)) {
+                    Storage::disk('public')->delete($oldFoto);
+                }
+            }
+        });
     }
 }

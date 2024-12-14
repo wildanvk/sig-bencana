@@ -9,7 +9,7 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateDisasterTypes extends CreateRecord
 {
     protected static string $resource = DisasterTypesResource::class;
-
+    protected static ?string $title = 'Tambah Jenis Bencana';
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

@@ -16,24 +16,67 @@
 
 <body>
     <h1>Geospatial Map</h1>
+    <input type="text" id="latitude-input">
+    <input type="text" id="longitude-input">
     <div id="map"></div>
 
     <script>
-        // Inisialisasi peta
-        var map = L.map('map').setView([-6.889978338487142, 109.67363486279189], 13); // Pusat peta
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        let mapInitialized = false;
+        let map;
+        let marker;
 
-        // Ambil data lokasi dari API
-        fetch('/api/locations')
-            .then(response => response.json())
-            .then(data => {
-                data.forEach(location => {
-                    const coordinates = location.coordinates.replace('POINT(', '').replace(')', '').split(' ');
-                    L.marker([coordinates[1], coordinates[0]])
-                        .addTo(map)
-                        .bindPopup(location.name);
-                });
+        document.addEventListener('DOMContentLoaded', function() {
+            const latitudeInput = document.getElementById('latitude-input');
+            const longitudeInput = document.getElementById('longitude-input');
+
+            const defaultLat = parseFloat(latitudeInput?.value) || -6.8883;
+            const defaultLng = parseFloat(longitudeInput?.value) || 109.6784;
+
+            if (!mapInitialized) {
+                // Inisialisasi peta hanya jika belum diinisialisasi
+                map = L.map('map').setView([defaultLat, defaultLng], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Tambahkan marker
+                marker = L.marker([defaultLat, defaultLng], {
+                    draggable: true
+                }).addTo(map);
+
+                mapInitialized = true;
+            }
+
+            // Listener untuk memperbarui input dari marker
+            marker.on('dragend', function(e) {
+                const lat = e.target.getLatLng().lat.toFixed(8);
+                const lng = e.target.getLatLng().lng.toFixed(8);
+
+                if (latitudeInput) latitudeInput.value = lat;
+                if (longitudeInput) longitudeInput.value = lng;
             });
+
+            // Listener untuk memperbarui marker dari input
+            latitudeInput.addEventListener('input', function() {
+                const lat = parseFloat(latitudeInput.value) || defaultLat;
+                const lng = parseFloat(longitudeInput.value) || defaultLng;
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    marker.setLatLng([lat, lng]);
+                    map.setView([lat, lng]);
+                }
+            });
+
+            longitudeInput.addEventListener('input', function() {
+                const lat = parseFloat(latitudeInput.value) || defaultLat;
+                const lng = parseFloat(longitudeInput.value) || defaultLng;
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    marker.setLatLng([lat, lng]);
+                    map.setView([lat, lng]);
+                }
+            });
+        });
     </script>
 </body>
 

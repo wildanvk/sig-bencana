@@ -9,7 +9,7 @@ use Filament\Resources\Pages\ListRecords;
 class ListSubdistricts extends ListRecords
 {
     protected static string $resource = SubdistrictsResource::class;
-
+    protected static ?string $title = 'Kecamatan';
     protected function getHeaderActions(): array
     {
         return [

@@ -9,7 +9,7 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateDisasterLists extends CreateRecord
 {
     protected static string $resource = DisasterListsResource::class;
-
+    protected static ?string $title = 'Tambah Data Bencana';
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

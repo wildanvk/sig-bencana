@@ -20,9 +20,12 @@ class SubdistrictsResource extends Resource
 {
     protected static ?string $model = Subdistricts::class;
 
+    protected static ?string $title = 'Custom Page Title';
     protected static ?string $navigationIcon = 'heroicon-o-globe-asia-australia';
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?string $navigationLabel = 'Kecamatan';
+    protected static ?string $slug = 'kecamatan';
+    protected static ?string $breadcrumb = 'Kecamatan';
 
     public static function form(Form $form): Form
     {
@@ -63,7 +66,9 @@ class SubdistrictsResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('Hapus Data Kecamatan')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus data kecamatan ini?'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
