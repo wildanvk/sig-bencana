@@ -18,6 +18,9 @@ use App\Forms\Components\MapPicker;
 use Filament\Forms\Components\Card;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\View;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Support\Enums\Alignment;
 use Filament\Forms\Components\Actions;
@@ -26,10 +29,10 @@ use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Columns\ImageColumn;
-
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Support\Enums\VerticalAlignment;
 use Cheesegrits\FilamentGoogleMaps\Fields\Map;
 use App\Filament\Resources\DisasterListsResource\Pages;
@@ -55,16 +58,19 @@ class DisasterListsResource extends Resource
             ->schema([
                 Card::make()
                     ->schema([
+                        Hidden::make('id_user')
+                            ->default(Auth::id()),
                         TextInput::make('kode')
                             ->label('Kode Bencana')
                             ->disabled()
                             ->default(fn() => 'BNC-' . str_pad((\App\Models\DisasterLists::max('kode') ? (int) substr(\App\Models\DisasterLists::max('kode'), 4) + 1 : 1), 4, '0', STR_PAD_LEFT))
                             ->helperText('Kode dihasilkan otomatis.'),
-                        DatePicker::make('tanggal_kejadian')
+                        DateTimePicker::make('tanggal_kejadian')
                             ->label('Tanggal Kejadian')
+                            ->seconds(false)
+                            ->displayFormat('d F Y H:i')
                             ->default(now())
                             ->native(false)
-                            ->displayFormat('d mm Y')
                             ->required(),
                         Select::make('kode_jenis_bencana')
                             ->label('Jenis Bencana')
@@ -189,11 +195,13 @@ class DisasterListsResource extends Resource
                             ])
                             ->collapsible(),
 
+
                     ])
 
                     ->columnSpan('full'),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
@@ -205,7 +213,7 @@ class DisasterListsResource extends Resource
                     ->searchable(),
                 TextColumn::make('tanggal_kejadian')
                     ->label('Tanggal Kejadian')
-                    ->date('d F Y')
+                    ->datetime('d F Y H:i')
                     ->sortable(),
                 TextColumn::make('disasterTypes.jenis_bencana')
                     ->label('Jenis Bencana')
@@ -214,23 +222,32 @@ class DisasterListsResource extends Resource
                     ->label('Kecamatan'),
                 TextColumn::make('desa')
                     ->label('Desa'),
+                TextColumn::make('penyebab')
+                    ->label('Penyebab')
+                    ->extraAttributes(['style' => 'width: 12rem; max-width: 12rem;  white-space: normal; word-wrap: break-word;']),
                 TextColumn::make('dampak')
                     ->label('Dampak')
                     ->extraAttributes(['style' => 'width: 12rem; max-width: 12rem;  white-space: normal; word-wrap: break-word;']),
                 TextColumn::make('kk')
-                    ->toggleable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->label('KK'),
                 TextColumn::make('jiwa')
-                    ->toggleable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->label('Jiwa'),
+                TextColumn::make('sakit')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->label('Sakit'),
+                TextColumn::make('hilang')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->label('Hilang'),
                 TextColumn::make('meninggal')
-                    ->toggleable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->label('MD'),
                 TextColumn::make('upaya')
                     ->label('Upaya')
                     ->extraAttributes(['style' => 'width: 12rem; max-width: 12rem;  white-space: normal; word-wrap: break-word;']),
                 TextColumn::make('nilai_kerusakan')
-                    ->toggleable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->label('Kerugian')
                     ->money('IDR'), // Format mata uang
                 ImageColumn::make('foto')

@@ -36,6 +36,7 @@ class DisasterLists extends Model
         'upaya',
         'foto',
         'location',
+        'id_user',
     ];
 
     protected $appends = [

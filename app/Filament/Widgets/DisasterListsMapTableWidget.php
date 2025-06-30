@@ -4,14 +4,15 @@ namespace App\Filament\Widgets;
 
 use Filament\Tables;
 use Filament\Actions\Action;
+use App\Models\DisasterTypes;
+use Filament\Forms\Components\Card;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
-use Cheesegrits\FilamentGoogleMaps\Columns\MapColumn;
 use Cheesegrits\FilamentGoogleMaps\Actions\GoToAction;
-use Cheesegrits\FilamentGoogleMaps\Filters\MapIsFilter;
-use Cheesegrits\FilamentGoogleMaps\Actions\RadiusAction;
-use Cheesegrits\FilamentGoogleMaps\Filters\RadiusFilter;
 use Cheesegrits\FilamentGoogleMaps\Widgets\MapTableWidget;
 
 class DisasterListsMapTableWidget extends MapTableWidget
@@ -27,6 +28,47 @@ class DisasterListsMapTableWidget extends MapTableWidget
 	protected static ?bool $clustering = true;
 
 	protected static ?string $mapId = 'incidents';
+
+	protected array $mapOptions = [
+		'zoom' => 11,
+		'center' => [
+			'lat' => -6.8896,
+			'lng' => 109.6753,
+		],
+		'restriction' => [
+			'latLngBounds' => [
+				'north' => -6.7,
+				'south' => -7.15,
+				'east' => 109.85,
+				'west' => 109.45,
+			],
+			'strictBounds' => true,
+		],
+		'gestureHandling' => 'greedy', // opsional, pastikan drag aktif di dalam batas
+		'draggable' => true, // biarkan draggable tapi tetap terkunci pada batas
+	];
+
+	protected function getFormSchema(): array
+	{
+		return [
+			Card::make()
+				->schema([
+					TextInput::make('kode')
+						->label('Kode Bencana'),
+					DatePicker::make('tanggal_kejadian')
+						->label('Tanggal Kejadian')
+						->required()
+						->native(false)
+						->displayFormat('d mm Y'),
+					Select::make('kode_jenis_bencana')
+						->label('Jenis Bencana')
+						->relationship('disasterTypes', 'jenis_bencana')
+						->options(DisasterTypes::all()->pluck('jenis_bencana', 'kode')),
+					TextInput::make('desa')
+						->label('Desa'),
+				])
+		];
+	}
 
 	protected function getTableQuery(): Builder
 	{
@@ -51,26 +93,15 @@ class DisasterListsMapTableWidget extends MapTableWidget
 		];
 	}
 
-	protected function getTableFilters(): array
-	{
-		return [
-			RadiusFilter::make('location')
-				->section('Radius Filter')
-				->selectUnit(),
-			MapIsFilter::make('map'),
-		];
-	}
-
 	protected function getTableActions(): array
 	{
 		return [
-			Tables\Actions\ViewAction::make(),
-			Tables\Actions\EditAction::make(),
+			Tables\Actions\ViewAction::make()
+				->label('Lihat Detail')
+				->form($this->getFormSchema()),
 			GoToAction::make()
 				->zoom(14)
 				->label('Lihat Lokasi'),
-			// RadiusAction::make()
-			// 	->label('Radius Search'),
 		];
 	}
 
@@ -105,7 +136,7 @@ class DisasterListsMapTableWidget extends MapTableWidget
 					TextEntry::make('disasterTypes.jenis_bencana'),
 					TextEntry::make('desa'),
 				])
-					->columns(3)
+					->columns(1)
 			])
 			->record(function (array $arguments) {
 				return array_key_exists('model_id', $arguments) ? \App\Models\DisasterLists::find($arguments['model_id']) : null;
